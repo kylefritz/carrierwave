@@ -109,8 +109,8 @@ module CarrierWave
     #
     #     image.convert(:png)
     #
-    def convert(format)
-      manipulate!(:format => format)
+    def convert(format,frame=0)
+      manipulate!(:format => format,:frame=>frame)
     end
 
     ##
@@ -247,14 +247,14 @@ module CarrierWave
       cache_stored_file! if !cached?
       image = ::Magick::Image.read(current_path)
 
-      frames = if image.size > 1
+      frames = if image.size > 1 and not options[:frame] and block_given?
         list = ::Magick::ImageList.new
         image.each do |frame|
           list << yield( frame )
         end
         list
       else
-        frame = image.first
+        frame = options[:frame] ? image[options[:frame]] : image.first
         frame = yield( frame ) if block_given?
         frame
       end
