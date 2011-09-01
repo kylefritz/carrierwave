@@ -95,6 +95,46 @@ module CarrierWave
         BeNoLargerThan.new(width, height)
       end
 
+      class HaveFileSignature # :nodoc:
+        def initialize(filetype)
+          @file_type = filetype
+          case @file_type
+          when :png
+            @file_seek = 1
+            @file_read = 3
+            @file_signature = "PNG"
+          else
+            puts "WARNING: don't know the signature for filetype #{@file_type}"
+          end
+        end
+
+        def matches?(actual)
+          @actual = actual
+          # Satisfy expectation here. Return false or raise an error if it's not met.
+          File.open(@actual.current_path,'r') do |f|
+            f.seek(@file_seek)
+            @actual_signature = f.read(@file_read)
+            @actual_signature == @file_signature
+          end
+        end
+
+        def failure_message
+          "expected #{@actual.current_path.inspect} to have signature #{@file_signature} but it was #{@actual_signature}."
+        end
+
+        def negative_failure_message
+          "expected #{@actual.current_path.inspect} to have signature #{@file_signature} but it wasn't."
+        end
+
+        def description
+          "have signature #{@file_signature}"
+        end
+      end
+
+      def have_file_signature(filetype)
+        HaveFileSignature.new(filetype)
+      end
+
       class HaveDimensions # :nodoc:
         def initialize(width, height)
           @width, @height = width, height
