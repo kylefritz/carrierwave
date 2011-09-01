@@ -109,8 +109,8 @@ module CarrierWave
     #
     #     image.convert(:png)
     #
-    def convert(format)
-      manipulate!(:format => format,:frame=>0)
+    def convert(format,frame=0)
+      manipulate!(:format => format,:frame=>frame)
     end
 
     ##
@@ -247,28 +247,20 @@ module CarrierWave
       cache_stored_file! if !cached?
       image = ::Magick::Image.read(current_path)
 
-      frames = if image.size > 1 and not options[:frame]
-          list = ::Magick::ImageList.new
-          image.each do |frame|
-            list << yield( frame )
-          end
-          list
+      frames = if image.size > 1 and not options[:frame] and block_given?
+        list = ::Magick::ImageList.new
+        image.each do |frame|
+          list << yield( frame )
+        end
+        list
       else
-        frame = options[:frame] ? image[options[:frame]]: image.first
+        frame = options[:frame] ? image[options[:frame]] : image.first
         frame = yield( frame ) if block_given?
         frame
       end
 
       if options[:format]
-
-        target_path = current_path
-        ext = File.extname(current_path)
-        if ext.lower() != options[:format].lower()
-          target_path = current_path.gsub(/#{ext}$/,options[:format])
-          Rails.logger.debug "moving file from #{current_path} to #{target_path}"
-        end
-
-        frames.write("#{options[:format]}:#{target_path}")
+        frames.write("#{options[:format]}:#{current_path}")
       else
         frames.write(current_path)
       end

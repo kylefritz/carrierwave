@@ -13,18 +13,31 @@ else
       end
       @instance = @klass.new
       FileUtils.cp(file_path('landscape.jpg'), file_path('landscape_copy.jpg'))
+      FileUtils.cp(file_path('resume.pdf'), file_path('resume_copy.pdf'))
       @instance.stub(:current_path).and_return(file_path('landscape_copy.jpg'))
       @instance.stub(:cached?).and_return true
     end
 
     after do
       FileUtils.rm(file_path('landscape_copy.jpg'))
+      FileUtils.rm(file_path('resume_copy.pdf'))
     end
 
     describe '#convert' do
       it "should convert the image to the given format" do
-        # TODO: find some way to spec this
         @instance.convert(:png)
+        @instance.should have_file_signature(:png)
+      end
+      it "should give just the first image of a multi-frame image (pdf) if no block given" do
+        @instance.stub(:current_path).and_return(file_path('resume_copy.pdf'))
+        @instance.convert(:png)
+        @instance.should have_file_signature(:png)
+      end
+      it "should grab certian page if specified" do
+        # TODO: find some way to spec this
+        @instance.stub(:current_path).and_return(file_path('resume_copy.pdf'))
+        @instance.convert(:png,1)
+        @instance.should have_file_signature(:png)
       end
     end
 
