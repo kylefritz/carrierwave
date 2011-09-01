@@ -171,6 +171,23 @@ contain Russian letters:
 Also make sure that allowing non-latin characters won't cause a compatibility issue with a third-party
 plugins or client-side software.
 
+## Setting the content type
+
+If care about the content type of your files and notice that it's not being set
+as expected, you can configure your uploaders to use `CarrierWave::MimeTypes`.
+This adds a dependency on the [mime-types](http://rubygems.org/gems/mime-types) gem,
+but is recommended when using fog, and fog already has a dependency on mime-types.
+
+``` ruby
+require 'carrierwave/processing/mime_types'
+
+class MyUploader < CarrierWave::Uploader::Base
+  include CarrierWave::MimeTypes
+
+  processor :set_content_type
+end
+```
+
 ## Adding versions
 
 Often you'll want to add different versions of the same file. The classic
